@@ -91,6 +91,10 @@ typedef struct redisObject robj;
 #include "endianconv.h"
 #include "crc64.h"
 
+#ifdef PIN_HOOK
+extern monotime roi_start;
+#endif /* PIN_HOOK */
+
 struct hdr_histogram;
 
 /* helpers */

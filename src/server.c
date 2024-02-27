@@ -62,6 +62,17 @@
 #include <locale.h>
 #include <sys/socket.h>
 
+
+/* used for pin tool */
+#ifdef PIN_HOOK
+#include <stdio.h>
+monotime roi_start; 
+__attribute__ ((noinline)) void pin_hook_init(void) {
+    roi_start = getMonotonicUs();
+    fprintf(stderr, "PIN START\n");
+}
+#endif /* PIN_HOOK */
+
 #ifdef __linux__
 #include <sys/mman.h>
 #endif
@@ -7148,6 +7159,10 @@ int main(int argc, char **argv) {
                 continue;
 
             serverLog(LL_NOTICE,"Ready to accept connections %s", listener->ct->get_type(NULL));
+#ifdef PIN_HOOK
+            pin_hook_init();
+#endif  // PIN_HOOK
+            
         }
 
         if (server.supervised_mode == SUPERVISED_SYSTEMD) {

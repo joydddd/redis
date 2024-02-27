@@ -38,6 +38,18 @@
 #include <math.h>
 #include <ctype.h>
 
+
+/* used for pin tool */
+#ifdef PIN_HOOK
+#include <stdio.h>
+__attribute__ ((noinline)) void pin_hook_fini(void) {
+    fprintf(stderr, "PIN END\n");
+    monotime roi_end = getMonotonicUs();
+    fprintf(stderr, "kernel runtime = %f s\n", (roi_end - roi_start) / 1000.0 / 1000.0);
+}
+#endif /* PIN_HOOK */
+
+
 static void setProtocolError(const char *errstr, client *c);
 static void pauseClientsByClient(mstime_t end, int isPauseClientAll);
 int postponeClientRead(client *c);
@@ -2705,6 +2717,13 @@ void readQueryFromClient(connection *conn) {
             sdsfree(info);
         }
         freeClientAsync(c);
+#ifdef PIN_HOOK
+        if (listLength(server.clients)-listLength(server.slaves) <= 1){
+            pin_hook_fini();
+            server.shutdown_asap = 1;
+            server.shutdown_flags = SHUTDOWN_NOSAVE | SHUTDOWN_FORCE | SHUTDOWN_NOW;
+        }
+#endif /*PIN_HOOK*/
         goto done;
     }
 
